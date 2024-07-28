@@ -70,7 +70,7 @@ jobs:
               PATCH=$((PATCH + 1))
               BUILD=1
             else
-              BUILD=$((BUILD + 1))
+              BUILD=$((BUILD + 1)) 
             fi
             NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}.${BUILD}"
           fi
