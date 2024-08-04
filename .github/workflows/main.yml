@@ -70,9 +70,12 @@ jobs:
               ((PATCH++))
               BUILD=0
             else
+              echo "No recognized keywords found. Incrementing BUILD version"
               ((BUILD++))
             fi
           fi
+
+          echo "Final version: MAJOR=$MAJOR, MINOR=$MINOR, PATCH=$PATCH, BUILD=$BUILD"
 
           # Output the new version to the environment file
           NEW_TAG="v$MAJOR.$MINOR.$PATCH.$BUILD"
