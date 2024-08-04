@@ -5,10 +5,3 @@
 # Second Commit
 d
 # Third Commitdas
-gfd
-das
-patch 
-minor
-dasdsa
-das
-major
