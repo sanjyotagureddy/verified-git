@@ -11,3 +11,4 @@ patch
 minor
 dasdsa
 das
+major
