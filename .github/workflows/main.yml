@@ -90,7 +90,7 @@ jobs:
                   echo "last version: MAJOR=$MAJOR, MINOR=$MINOR, PATCH=$PATCH, BUILD=$BUILD"
                 else
                   echo "No recognized keywords found. Incrementing BUILD version"
-                  ((BUILD++))
+                  BUILD=$((BUILD + 1))
                 fi
               fi
             fi
