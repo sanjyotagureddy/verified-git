@@ -9,8 +9,4 @@
 
 #feat commit
 #feature das
-new 
-das
-das
-das
-chore 
+feat
