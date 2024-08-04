@@ -21,10 +21,10 @@ jobs:
       - name: Determine new version
         id: version
         run: |
-          # Fetch the latest tags
+          echo "Fetching latest tags..."
           git fetch --tags
 
-          # Get the latest tag or set to default if no tags are found
+          echo "Getting the latest tag..."
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "0.0.0.0")
           echo "Latest tag: $LATEST_TAG"
 
@@ -33,12 +33,14 @@ jobs:
 
           # Split the version into an array
           IFS='.' read -ra VERSION_PARTS <<< "$LATEST_TAG"
+          echo "Version parts: ${VERSION_PARTS[@]}"
 
           # Initialize version parts
           MAJOR=${VERSION_PARTS[0]:-0}
           MINOR=${VERSION_PARTS[1]:-0}
           PATCH=${VERSION_PARTS[2]:-0}
           BUILD=${VERSION_PARTS[3]:-0}
+          echo "Initial version: MAJOR=$MAJOR, MINOR=$MINOR, PATCH=$PATCH, BUILD=$BUILD"
 
           # Get the commit messages from the last commit
           COMMITS=$(git log --format=%B -n 1 HEAD)
@@ -46,18 +48,22 @@ jobs:
 
           # Determine version increment based on commit messages
           if echo "$COMMITS" | grep -q '^MAJOR:'; then
+            echo "Incrementing MAJOR version"
             ((MAJOR++))
             MINOR=0
             PATCH=0
             BUILD=0
           elif echo "$COMMITS" | grep -q '^MINOR:'; then
+            echo "Incrementing MINOR version"
             ((MINOR++))
             PATCH=0
             BUILD=0
-          elif echo "$COMMITS" | grep -E '^(feat|fix|feature|bug|chore|refactor):' > /dev/null; then
+          elif echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor):'; then
+            echo "Incrementing PATCH version based on keyword"
             ((PATCH++))
             BUILD=0
           else
+            echo "Incrementing BUILD version"
             # Check if commit message contains common keywords for patch increment
             if echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor)'; then
               ((PATCH++))
@@ -69,15 +75,18 @@ jobs:
 
           # Output the new version to the environment file
           NEW_TAG="v$MAJOR.$MINOR.$PATCH.$BUILD"
+          echo "New tag: $NEW_TAG"
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
 
       - name: Create and push new tag
         run: |
+          echo "Checking if the new tag already exists..."
           # Check if the new tag already exists
           if git rev-parse "refs/tags/${{ env.NEW_TAG }}" >/dev/null 2>&1; then
-            echo "Tag already exists. Exiting."
+            echo "Tag ${NEW_TAG} already exists. Exiting."
             exit 0
           fi
 
+          echo "Creating and pushing new tag ${NEW_TAG}"
           git tag ${{ env.NEW_TAG }}
           git push origin ${{ env.NEW_TAG }}
