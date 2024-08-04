@@ -16,10 +16,12 @@ jobs:
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
 
-      - name: Get latest tag
-        id: get_latest_tag
+      - name: Debug Latest Tag
         run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0  || echo "")
+          echo "All tags:"
+          git tag
+          echo "Latest tag from describe:"
+          git describe --tags --abbrev=0 2>/dev/null || echo "No tags found"
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
       - name: Get commit messages
