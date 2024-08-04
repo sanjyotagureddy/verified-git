@@ -45,12 +45,12 @@ jobs:
           echo "Commit messages: $COMMITS"
 
           # Determine version increment based on commit messages
-          if echo "$COMMITS" | grep -q '^MAJOR:'; then
+          if echo "$COMMITS" | grep -E -q '^MAJOR:'; then
             ((MAJOR++))
             MINOR=0
             PATCH=0
             BUILD=0
-          elif echo "$COMMITS" | grep -q '^MINOR:'; then
+          elif echo "$COMMITS" | grep -E -q '^MINOR:'; then
             ((MINOR++))
             PATCH=0
             BUILD=0
