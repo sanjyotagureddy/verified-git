@@ -42,13 +42,23 @@ jobs:
           BUILD=${VERSION_PARTS[3]:-0}
           echo "Initial version: MAJOR=$MAJOR, MINOR=$MINOR, PATCH=$PATCH, BUILD=$BUILD"
 
-          # Get the commit messages from the last commit
+          # Get the commit messages from the latest commit
           COMMITS=$(git log --format=%B -n 1 HEAD)
           echo "Commit messages: $COMMITS"
 
           # Determine version increment based on commit messages
-          
-          if echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor):'; then
+          if echo "$COMMITS" | grep -q '^MAJOR:'; then
+            echo "Incrementing MAJOR version"
+            ((MAJOR++))
+            MINOR=0
+            PATCH=0
+            BUILD=0
+          elif echo "$COMMITS" | grep -q '^MINOR:'; then
+            echo "Incrementing MINOR version"
+            ((MINOR++))
+            PATCH=0
+            BUILD=0
+          elif echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor):'; then
             echo "Incrementing PATCH version based on keyword with colon"
             ((PATCH++))
             BUILD=0
@@ -60,12 +70,9 @@ jobs:
               ((PATCH++))
               BUILD=0
             else
-              echo "No recognized keywords found. Incrementing BUILD version"
               ((BUILD++))
             fi
           fi
-
-          echo "Final version: MAJOR=$MAJOR, MINOR=$MINOR, PATCH=$PATCH, BUILD=$BUILD"
 
           # Output the new version to the environment file
           NEW_TAG="v$MAJOR.$MINOR.$PATCH.$BUILD"
