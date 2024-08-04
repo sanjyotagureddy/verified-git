@@ -71,7 +71,7 @@ jobs:
               echo "Pattern for PATCH increment (with colon): '^(feat|fix|feature|bug|chore|refactor):'"
               echo "Matching commit messages against the pattern:"
               echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor):' && echo "Pattern matched for PATCH increment (with colon)" || echo "Pattern did not match for PATCH increment (with colon)"
-
+              
               if echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor):'; then
                 echo "Incrementing PATCH version based on keyword with colon"
                 ((PATCH++))
