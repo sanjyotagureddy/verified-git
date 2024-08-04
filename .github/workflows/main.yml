@@ -74,7 +74,7 @@ jobs:
               
               if echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor):'; then
                 echo "Incrementing PATCH version based on keyword with colon"
-                ((PATCH++))
+                PATCH=$((PATCH + 1))
                 BUILD=0
               else
                 echo "Pattern for PATCH increment (without colon): '^(feat|fix|feature|bug|chore|refactor)'"
@@ -84,7 +84,7 @@ jobs:
                 if echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor)'; then
                   echo "Incrementing PATCH version based on keyword without colon"
                   echo "before version: MAJOR=$MAJOR, MINOR=$MINOR, PATCH=$PATCH, BUILD=$BUILD"
-                  ((PATCH++))
+                  PATCH=$((PATCH + 1))
                   echo "After version: MAJOR=$MAJOR, MINOR=$MINOR, PATCH=$PATCH, BUILD=$BUILD"
                   BUILD=0
                   echo "last version: MAJOR=$MAJOR, MINOR=$MINOR, PATCH=$PATCH, BUILD=$BUILD"
