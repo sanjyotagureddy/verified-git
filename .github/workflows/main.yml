@@ -19,7 +19,7 @@ jobs:
       - name: Get latest tag
         id: get_latest_tag
         run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          LATEST_TAG=$(git describe --tags --abbrev=0  || echo "")
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
       - name: Get commit messages
