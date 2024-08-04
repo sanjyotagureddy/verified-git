@@ -13,77 +13,63 @@ jobs:
 
       - name: Set up Git
         run: |
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-
-      - name: Debug Latest Tag
-        run: |
-          echo "All tags:"
-          git tag
-          echo "Latest tag from describe:"
-          git describe --tags --abbrev=0 2>/dev/null || echo "No tags found"
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
-
-      - name: Get commit messages
-        id: get_commits
-        run: |
-          COMMITS=$(git log -1 --pretty=format:"%s")
-          echo "COMMITS=$COMMITS" >> $GITHUB_ENV
-
-      - name: Determine version bump
-        id: determine_bump
-        run: |
-          COMMITS="${{ env.COMMITS }}"
-          if echo "$COMMITS" | grep -q 'BREAKING CHANGE'; then
-            echo "BUMP=major" >> $GITHUB_ENV
-          elif echo "$COMMITS" | grep -q 'feat'; then
-            echo "BUMP=minor" >> $GITHUB_ENV
-          elif echo "$COMMITS" | grep -q 'refactor'; then
-            echo "BUMP=minor" >> $GITHUB_ENV
-          elif echo "$COMMITS" | grep -q 'fix'; then
-            echo "BUMP=patch" >> $GITHUB_ENV
-          else
-            echo "BUMP=none" >> $GITHUB_ENV
-          fi
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
 
       - name: Determine new version
-        id: determine_version
+        id: version
         run: |
-          LATEST_TAG="${{ env.LATEST_TAG }}"
-          BUMP="${{ env.BUMP }}"
-          if [ -z "$LATEST_TAG" ]; then
-            NEW_TAG="v1.0.0.1"
+          # Fetch the latest tags
+          git fetch --tags
+          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          echo "Latest tag: $LATEST_TAG"
+
+          # Split the version into an array
+          IFS='.' read -ra VERSION_PARTS <<< "$LATEST_TAG"
+
+          # Initialize version parts
+          MAJOR=${VERSION_PARTS[0]:-0}
+          MINOR=${VERSION_PARTS[1]:-0}
+          PATCH=${VERSION_PARTS[2]:-0}
+          BUILD=${VERSION_PARTS[3]:-0}
+
+          # Check the commit messages
+          COMMITS=$(git log --format=%B HEAD^..HEAD)
+          if echo "$COMMITS" | grep -q 'MAJOR:'; then
+            ((MAJOR++))
+            MINOR=0
+            PATCH=0
+            BUILD=0
+          elif echo "$COMMITS" | grep -q 'MINOR:'; then
+            ((MINOR++))
+            PATCH=0
+            BUILD=0
+          elif echo "$COMMITS" | grep -E -q 'feat:|fix:|feature:|bug:|chore:|refactor:'; then
+            ((PATCH++))
+            BUILD=0
           else
-            IFS='.' read -ra VERSION_PARTS <<< "${LATEST_TAG#v}"
-            MAJOR=${VERSION_PARTS[0]}
-            MINOR=${VERSION_PARTS[1]}
-            PATCH=${VERSION_PARTS[2]}
-            BUILD=${VERSION_PARTS[3]}
-            if [ "$BUMP" = "major" ]; then
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-              BUILD=1
-            elif [ "$BUMP" = "minor" ]; then
-              MINOR=$((MINOR + 1))
-              PATCH=0
-              BUILD=1
-            elif [ "$BUMP" = "patch" ]; then
-              PATCH=$((PATCH + 1))
-              BUILD=1
-            else
-              BUILD=$((BUILD + 1))
-            fi
-            NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}.${BUILD}"
+            ((BUILD++))
           fi
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+
+          # Output the new version
+          NEW_TAG="$MAJOR.$MINOR.$PATCH.$BUILD"
+          echo "New tag: $NEW_TAG"
+          echo "::set-output name=new_tag::$NEW_TAG"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          # Check if the tag already exists
+          if git rev-parse "refs/tags/${{ steps.version.outputs.new_tag }}" >/dev/null 2>&1; then
+            echo "Tag exists"
+            echo "::set-output name=tag_exists::true"
+          else
+            echo "Tag does not exist"
+            echo "::set-output name=tag_exists::false"
+          fi
 
       - name: Create new tag
+        if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
-          git tag ${{ env.NEW_TAG }}
-
-      - name: Push new tag
-        run: |
-          git push origin ${{ env.NEW_TAG }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git tag ${{ steps.version.outputs.new_tag }}
+          git push origin ${{ steps.version.outputs.new_tag }}
