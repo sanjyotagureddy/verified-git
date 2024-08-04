@@ -46,7 +46,11 @@ jobs:
           COMMITS=$(git log --format=%B -n 1 HEAD)
           echo "Commit messages: $COMMITS"
 
-          # Determine version increment based on commit messages
+          # Print the pattern and commit message before matching
+          echo "Pattern for patch increment (with colon): '^(feat|fix|feature|bug|chore|refactor):'"
+          echo "Checking if commit messages match the pattern:"
+          echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor):'
+          
           if echo "$COMMITS" | grep -q '^MAJOR:'; then
             echo "Incrementing MAJOR version"
             ((MAJOR++))
@@ -61,16 +65,20 @@ jobs:
           elif echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor):'; then
             echo "Incrementing PATCH version based on keyword with colon"
             ((PATCH++))
-            
+            BUILD=0
           else
             echo "Incrementing BUILD version"
             # Check if commit message contains common keywords for patch increment
+            echo "Pattern for patch increment (without colon): '^(feat|fix|feature|bug|chore|refactor)'"
+            echo "Checking if commit messages match the pattern:"
+            echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor)'
+            
             if echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor)'; then
               echo "Incrementing PATCH version based on keyword without colon"
               ((PATCH++))
               BUILD=0
             else
-              # Increment BUILD version without resetting it
+              echo "No recognized keywords found. Incrementing BUILD version"
               ((BUILD++))
             fi
           fi
