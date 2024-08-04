@@ -61,18 +61,17 @@ jobs:
             ((BUILD++))
           fi
 
-          # Output the new version
+          # Output the new version to the environment file
           NEW_TAG="v$MAJOR.$MINOR.$PATCH.$BUILD"
-          echo "New tag: $NEW_TAG"
-          echo "::set-output name=new_tag::$NEW_TAG"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
 
       - name: Create and push new tag
         run: |
           # Check if the new tag already exists
-          if git rev-parse "refs/tags/${{ steps.version.outputs.new_tag }}" >/dev/null 2>&1; then
+          if git rev-parse "refs/tags/${{ env.NEW_TAG }}" >/dev/null 2>&1; then
             echo "Tag already exists. Exiting."
             exit 0
           fi
 
-          git tag ${{ steps.version.outputs.new_tag }}
-          git push origin ${{ steps.version.outputs.new_tag }}
+          git tag ${{ env.NEW_TAG }}
+          git push origin ${{ env.NEW_TAG }}
