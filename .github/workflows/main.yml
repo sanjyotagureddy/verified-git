@@ -43,16 +43,16 @@ jobs:
 
           # Check the commit messages
           COMMITS=$(git log --format=%B -n 1)
-          if echo "$COMMITS" | grep -q 'MAJOR:'; then
+          if echo "$COMMITS" | grep -q -E 'MAJOR:'; then
             ((MAJOR++))
             MINOR=0
             PATCH=0
             BUILD=0
-          elif echo "$COMMITS" | grep -q 'MINOR:'; then
+          elif echo "$COMMITS" | grep -q -E 'MINOR:'; then
             ((MINOR++))
             PATCH=0
             BUILD=0
-          elif echo "$COMMITS" | grep -E -q 'feat:|fix:|feature:|bug:|chore:|refactor:'; then
+          elif echo "$COMMITS" | grep -q -E 'feat:|fix:|feature:|bug:|chore:|refactor:'; then
             ((PATCH++))
             BUILD=0
           else
