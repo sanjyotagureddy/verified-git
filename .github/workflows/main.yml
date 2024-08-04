@@ -70,6 +70,7 @@ jobs:
               ((PATCH++))
               BUILD=0
             else
+              # Increment BUILD version without resetting it
               ((BUILD++))
             fi
           fi
