@@ -45,16 +45,16 @@ jobs:
           echo "Commit messages: $COMMITS"
 
           # Determine version increment based on commit messages
-          if echo "$COMMITS" | grep -E -q '^MAJOR:'; then
+          if echo "$COMMITS" | grep -E '^MAJOR:' > /dev/null; then
             ((MAJOR++))
             MINOR=0
             PATCH=0
             BUILD=0
-          elif echo "$COMMITS" | grep -E -q '^MINOR:'; then
+          elif echo "$COMMITS" | grep -E '^MINOR:' > /dev/null; then
             ((MINOR++))
             PATCH=0
             BUILD=0
-          elif echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor):'; then
+          elif echo "$COMMITS" | grep -E '^(feat|fix|feature|bug|chore|refactor):' > /dev/null; then
             ((PATCH++))
             BUILD=0
           else
