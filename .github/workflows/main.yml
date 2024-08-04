@@ -45,12 +45,12 @@ jobs:
           echo "Commit messages: $COMMITS"
 
           # Determine version increment based on commit messages
-          if echo "$COMMITS" | grep -E '^MAJOR:' > /dev/null; then
+          if echo "$COMMITS" | grep -q '^MAJOR:'; then
             ((MAJOR++))
             MINOR=0
             PATCH=0
             BUILD=0
-          elif echo "$COMMITS" | grep -E '^MINOR:' > /dev/null; then
+          elif echo "$COMMITS" | grep -q '^MINOR:'; then
             ((MINOR++))
             PATCH=0
             BUILD=0
@@ -58,7 +58,13 @@ jobs:
             ((PATCH++))
             BUILD=0
           else
-            ((BUILD++))
+            # Check if commit message contains common keywords for patch increment
+            if echo "$COMMITS" | grep -E -q '^(feat|fix|feature|bug|chore|refactor)'; then
+              ((PATCH++))
+              BUILD=0
+            else
+              ((BUILD++))
+            fi
           fi
 
           # Output the new version to the environment file
