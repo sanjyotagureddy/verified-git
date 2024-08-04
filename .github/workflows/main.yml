@@ -23,23 +23,19 @@ jobs:
         run: |
           # Fetch the latest tags
           git fetch --tags
-          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1` || echo "0.0.0.0")
+
+          # Get the latest tag or set to default if no tags are found
+          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "0.0.0.0")
           echo "Latest tag: $LATEST_TAG"
 
           # Split the version into an array
-          IFS='.' read -ra VERSION_PARTS <<< "$LATEST_TAG"
-
+          IFS='.' read -ra VERSION_PARTS <<< "${LATEST_TAG#v}" # Remove 'v' if present
+          
           # Initialize version parts
           MAJOR=${VERSION_PARTS[0]:-0}
           MINOR=${VERSION_PARTS[1]:-0}
           PATCH=${VERSION_PARTS[2]:-0}
           BUILD=${VERSION_PARTS[3]:-0}
-
-          # Check if there are any commits to process
-          if [ $(git rev-list --count HEAD) -eq 0 ]; then
-            echo "No commits to process."
-            exit 0
-          fi
 
           # Get the commit messages from the last commit
           COMMITS=$(git log --format=%B -n 1 HEAD)
@@ -63,7 +59,7 @@ jobs:
           fi
 
           # Output the new version
-          NEW_TAG="$MAJOR.$MINOR.$PATCH.$BUILD"
+          NEW_TAG="v$MAJOR.$MINOR.$PATCH.$BUILD"
           echo "New tag: $NEW_TAG"
           echo "::set-output name=new_tag::$NEW_TAG"
 
