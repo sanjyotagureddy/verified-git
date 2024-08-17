@@ -6,5 +6,5 @@
 d
 # Third Commitdas
 
-push
+pushminor 
 heello
