@@ -7,4 +7,4 @@ d
 # Third Commitdas
 - usb 
 pushminor 
-heello 1 
+heello 1 MINOR
