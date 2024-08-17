@@ -1,4 +1,24 @@
-- name: Determine new version
+name: Tag on Merge
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetch all history for all branches and tags
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Determine new version
         id: version
         run: |
           echo "Fetching latest tags..."
@@ -27,18 +47,18 @@
           echo "Commit messages: $COMMITS"
 
           # Increment version based on commit messages
-          if echo "$COMMITS" | grep -E '\bMAJOR\b' >/dev/null || echo "$COMMITS" | grep -E '\(MAJOR\)' >/dev/null; then
+          if echo "$COMMITS" | grep -E '\bMAJOR\b|\(MAJOR\)|\[MAJOR\]' >/dev/null; then
             echo "Incrementing MAJOR version"
             MAJOR=$((MAJOR + 1))
             MINOR=0
             PATCH=0
             BUILD=0
-          elif echo "$COMMITS" | grep -E '\bMINOR\b' >/dev/null || echo "$COMMITS" | grep -E '\(MINOR\)' >/dev/null; then
+          elif echo "$COMMITS" | grep -E '\bMINOR\b|\(MINOR\)|\[MINOR\]' >/dev/null; then
             echo "Incrementing MINOR version"
             MINOR=$((MINOR + 1))
             PATCH=0
             BUILD=0
-          elif echo "$COMMITS" | grep -E '\bfeat\b|\bfix\b|\bfeature\b|\bbug\b|\bchore\b|\brefactor\b' >/dev/null; then
+          elif echo "$COMMITS" | grep -E '\b(feat|fix|feature|bug|chore|refactor)\b|\(feat\)|\[feat\]|\(fix\)|\[fix\]|\(feature\)|\[feature\]|\(bug\)|\[bug\]|\(chore\)|\[chore\]|\(refactor\)|\[refactor\]' >/dev/null; then
             echo "Incrementing PATCH version based on keyword"
             PATCH=$((PATCH + 1))
             BUILD=0
@@ -51,3 +71,16 @@
           NEW_TAG="v$MAJOR.$MINOR.$PATCH.$BUILD"
           echo "New tag: $NEW_TAG"
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+
+      - name: Create and push new tag
+        run: |
+          echo "Checking if the new tag already exists..."
+          # Check if the new tag already exists
+          if git rev-parse "refs/tags/${{ env.NEW_TAG }}" >/dev/null 2>&1; then
+            echo "Tag ${NEW_TAG} already exists. Exiting."
+            exit 0
+          fi
+
+          echo "Creating and pushing new tag ${NEW_TAG}"
+          git tag ${{ env.NEW_TAG }}
+          git push origin ${{ env.NEW_TAG }}
